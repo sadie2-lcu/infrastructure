@@ -1,0 +1,120 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+            "type": "string"
+        },
+        "safename": {
+            "type": "string"
+        },
+        "regionId": {
+            "defaultValue": "westus2",
+            "type": "string"
+        },
+        "locationName": {
+            "defaultValue": "West US 2",
+            "type": "string"
+        },
+        "cosmosExperience": {
+            "defaultValue": "Core (SQL)",
+            "type": "string"
+        },
+        "requestSource": {
+            "defaultValue": "IbizaAIExtension",
+            "type": "string"
+        },
+        "insightAppType": {
+            "defaultValue": "other",
+            "type": "string"
+        },
+        "storageSkuName": {
+            "defaultValue": "Standard_RAGRS",
+            "type": "string"
+        },
+        "storageSkuTier": {
+            "defaultValue": "Standard",
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts",
+            "apiVersion": "2015-04-08",
+            "name": "[parameters('name')]",
+            "location": "[parameters('regionId')]",
+            "tags": {
+                "defaultExperience": "[parameters('cosmosExperience')]",
+                "Architecture": "LowCodeUnit"
+            },
+            "kind": "GlobalDocumentDB",
+            "properties": {
+                "enableAutomaticFailover": false,
+                "enableMultipleWriteLocations": false,
+                "isVirtualNetworkFilterEnabled": false,
+                "virtualNetworkRules": [],
+                "databaseAccountOfferType": "Standard",
+                "consistencyPolicy": {
+                    "defaultConsistencyLevel": "Session",
+                    "maxIntervalInSeconds": 5,
+                    "maxStalenessPrefix": 100
+                },
+                "locations": [
+                    {
+                        "locationName": "[parameters('locationName')]",
+                        "provisioningState": "Succeeded",
+                        "failoverPriority": 0
+                    }
+                ],
+                "capabilities": []
+            }
+        },
+        {
+            "type": "Microsoft.Insights/components",
+            "apiVersion": "2015-05-01",
+            "name": "[parameters('name')]",
+            "location": "[parameters('regionId')]",
+            "properties": {
+                "Application_Type": "[parameters('insightAppType')]",
+                "Flow_Type": "Redfield",
+                "Request_Source": "[parameters('requestSource')]"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2018-07-01",
+            "name": "[parameters('safename')]",
+            "location": "[parameters('regionId')]",
+            "tags": {
+                "Architecture": "LowCodeUnit"
+            },
+            "sku": {
+                "name": "[parameters('storageSkuName')]",
+                "tier": "[parameters('storageSkuTier')]"
+            },
+            "kind": "StorageV2",
+            "properties": {
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "enabled": true
+                        },
+                        "blob": {
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                },
+                "accessTier": "Hot"
+            }
+        }
+    ]
+}
